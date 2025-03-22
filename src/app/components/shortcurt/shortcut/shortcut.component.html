@@ -2,7 +2,7 @@
     <input #shortcutInput class="shortcut__input" type="text" id="shortcutInput" name="shortcutInput">
     <ul class="shortcut__keys-list">
         <li
-            *ngFor="let key of currentPressedKeys"
+            *ngFor="let key of (resultKeys$ | async)"
             class="shortcut__keys-list-item"
         >
             <p class="shortcut__key">{{ key }}</p>

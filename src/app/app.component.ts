@@ -6,4 +6,5 @@ import { Component } from '@angular/core';
     styleUrl: './app.component.scss'
 })
 export class AppComponent {
+    protected modifiers = ['Control', 'Alt', 'Shift', 'CapsLock', 'Meta'];
 }
