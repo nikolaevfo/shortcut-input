@@ -1,0 +1,54 @@
+:host {
+    width: 100%;
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.shortcut__label {
+    width: 100%;
+    display: block;
+    display: flex;
+}
+
+.shortcut__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(0 0 0 0);
+    border: none;
+    outline: none;
+    margin: 0;
+    padding: 0;
+}
+
+.shortcut__keys-list {
+    border-radius: 3px;
+    list-style: none;
+    margin: 0;
+    padding: 0 8px;
+    display: inline-block;
+    flex-grow: 1;
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    min-height: 40px;
+}
+
+.shortcut__keys-list-item {
+    margin: 0;
+    padding: 0;
+}
+
+.shortcut__input:focus + .shortcut__keys-list {
+    border: 1px solid #457cee;
+    outline: 2px solid #457cee;
+}
+
+.shortcut__key {
+    margin: 0;
+    padding: 4px 8px;
+    background: #dadada;
+    border-radius: 8px;
+}

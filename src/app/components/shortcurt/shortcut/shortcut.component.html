@@ -1,0 +1,11 @@
+<label for="shortcutInput" class="shortcut__label">
+    <input #shortcutInput class="shortcut__input" type="text" id="shortcutInput" name="shortcutInput">
+    <ul class="shortcut__keys-list">
+        <li
+            *ngFor="let key of currentPressedKeys"
+            class="shortcut__keys-list-item"
+        >
+            <p class="shortcut__key">{{ key }}</p>
+        </li>
+    </ul>
+</label>
