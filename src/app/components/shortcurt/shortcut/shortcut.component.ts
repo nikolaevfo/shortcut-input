@@ -1,5 +1,5 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, distinctUntilChanged, filter, fromEvent, map, merge, share, Subject, tap } from 'rxjs';
+import { Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject, distinctUntilChanged, filter, fromEvent, map, merge, Subject, tap } from 'rxjs';
 
 @Component({
   selector: 'app-shortcut',
@@ -11,9 +11,24 @@ export class ShortcutComponent implements OnInit {
 
     @ViewChild('shortcutInput', { static: true }) private shortcutInput!: ElementRef;
 
+    // if the shortcut matches to the system ones (for example, Alt + Tab),
+    // clear the state when switching the window
+    @HostListener('window:blur') onWindowBlur () {
+        if (
+            this.countOfModifiersPressedKeys === 0 &&
+            this.countOfNotModifiersPressedKeys === 0
+        ) {
+            return;
+        }
+
+        this.clearState();
+    }
+
     protected currentPressedKeys: string[] = [];
     private countOfModifiersPressedKeys = 0;
     private countOfNotModifiersPressedKeys = 0;
+
+    protected clearKeydownDistinctUntilChanged$ = new Subject<void>();
 
     protected showedKeys$ = new BehaviorSubject<string[]>([]);
     protected inProgress = false;
@@ -30,7 +45,7 @@ export class ShortcutComponent implements OnInit {
                 map((event) => event.key),
             ),
             // to reset the distinctUntilChanged state
-            keyup$.pipe(
+            this.clearKeydownDistinctUntilChanged$.pipe(
                 map(() => ''),
             ),
         )
@@ -50,6 +65,7 @@ export class ShortcutComponent implements OnInit {
         keyup$
             .pipe(
                 map((event) => event.key),
+                tap(() => this.clearKeydownDistinctUntilChanged$.next()),
                 tap((key) => {
                     const keyIndex = this.currentPressedKeys.findIndex((pressedKey) => pressedKey === key);
                     if (keyIndex < 0) {
@@ -67,6 +83,18 @@ export class ShortcutComponent implements OnInit {
             .subscribe((key: string) => {
                 this.onKeyUpHandler(key);
             })
+    }
+
+    private clearState () {
+        this.countOfModifiersPressedKeys = 0;
+        this.countOfNotModifiersPressedKeys = 0;
+        this.currentPressedKeys = [];
+        this.inProgress = false;
+        this.clearKeydownDistinctUntilChanged$.next();
+
+        if (!this.currentValidStateExist) {
+            this.showedKeys$.next([])
+        }
     }
 
     private onKeyDownHandler (key: string) {
