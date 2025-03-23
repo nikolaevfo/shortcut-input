@@ -1,12 +1,12 @@
-import { Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, distinctUntilChanged, filter, fromEvent, map, merge, Subject, tap } from 'rxjs';
+import { Component, DestroyRef, ElementRef, HostListener, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject, distinctUntilChanged, filter, fromEvent, map, merge, Subject, Subscription, tap } from 'rxjs';
 
 @Component({
   selector: 'app-shortcut',
   templateUrl: './shortcut.component.html',
   styleUrl: './shortcut.component.scss'
 })
-export class ShortcutComponent implements OnInit {
+export class ShortcutComponent implements OnInit, OnDestroy {
     @Input({ required: true }) modifiers!: string[];
 
     @ViewChild('shortcutInput', { static: true }) private shortcutInput!: ElementRef;
@@ -24,6 +24,8 @@ export class ShortcutComponent implements OnInit {
         this.clearState();
     }
 
+    private subscription = new Subscription();
+
     protected currentPressedKeys: string[] = [];
     private countOfModifiersPressedKeys = 0;
     private countOfNotModifiersPressedKeys = 0;
@@ -39,7 +41,7 @@ export class ShortcutComponent implements OnInit {
         const keydown$ = fromEvent<KeyboardEvent>(this.shortcutInput.nativeElement, 'keydown');
         const keyup$ = fromEvent<KeyboardEvent>(this.shortcutInput.nativeElement, 'keyup');
 
-        merge(
+        this.subscription.add(merge(
             keydown$.pipe(
                 tap((event) => event.preventDefault()),
                 map((event) => event.key),
@@ -61,8 +63,9 @@ export class ShortcutComponent implements OnInit {
             .subscribe((key) => {
                 this.onKeyDownHandler(key);
             })
+        )
 
-        keyup$
+        this.subscription.add(keyup$
             .pipe(
                 map((event) => event.key),
                 tap(() => this.clearKeydownDistinctUntilChanged$.next()),
@@ -83,6 +86,11 @@ export class ShortcutComponent implements OnInit {
             .subscribe((key: string) => {
                 this.onKeyUpHandler(key);
             })
+        )
+    }
+
+    ngOnDestroy(): void {
+        this.subscription.unsubscribe();
     }
 
     private clearState () {
