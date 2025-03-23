@@ -21,19 +21,39 @@
     padding: 0;
 }
 
-.shortcut__keys-list {
+.shortcut__row {
+    border: 1px solid black;
     border-radius: 3px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.shortcut__input:focus + .shortcut__row {
+    border: 1px solid #457cee;
+    outline: 2px solid #457cee;
+}
+
+.shortcut__input:focus + .shortcut__row_in-progress{
+    border: 1px solid black;
+    outline: none;
+}
+
+.shortcut__input:focus + .shortcut__row_valid {
+    border: 1px solid #457cee;
+    outline: 2px solid #457cee;
+}
+
+.shortcut__keys-list {
     list-style: none;
     margin: 0;
     padding: 0 8px;
     display: inline-block;
-    flex-grow: 1;
-    border: 1px solid black;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     gap: 6px;
-    min-height: 40px;
 }
 
 .shortcut__keys-list-item {
@@ -41,14 +61,17 @@
     padding: 0;
 }
 
-.shortcut__input:focus + .shortcut__keys-list {
-    border: 1px solid #457cee;
-    outline: 2px solid #457cee;
-}
 
 .shortcut__key {
     margin: 0;
     padding: 4px 8px;
     background: #dadada;
     border-radius: 8px;
+    color: #292929;
+}
+
+.shortcut__placeholder {
+    margin: 0 auto;
+    padding: 0;
+    color: #b1b1b1;
 }

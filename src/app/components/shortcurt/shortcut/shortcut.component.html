@@ -1,11 +1,25 @@
 <label for="shortcutInput" class="shortcut__label">
     <input #shortcutInput class="shortcut__input" type="text" id="shortcutInput" name="shortcutInput">
-    <ul class="shortcut__keys-list">
-        <li
-            *ngFor="let key of (resultKeys$ | async)"
-            class="shortcut__keys-list-item"
+    <ng-container *ngIf="(showedKeys$ | async) as keys">
+        <div
+            class="shortcut__row"
+            [class.shortcut__row_in-progress]="inProgress"
+            [class.shortcut__row_valid]="isValid"
         >
-            <p class="shortcut__key">{{ key }}</p>
-        </li>
-    </ul>
+            <ul
+                *ngIf="keys.length; else placeholder"
+                class="shortcut__keys-list"
+            >
+                <li
+                    *ngFor="let key of keys"
+                    class="shortcut__keys-list-item"
+                >
+                    <p class="shortcut__key">{{ key }}</p>
+                </li>
+            </ul>
+            <ng-template #placeholder>
+                <p class="shortcut__placeholder">Press Shortcut</p>
+            </ng-template>
+        </div>
+    </ng-container>
 </label>
