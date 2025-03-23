@@ -7,4 +7,5 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
     protected modifiers = ['Control', 'Alt', 'Shift', 'CapsLock', 'Meta'];
+    protected data: string = '';
 }

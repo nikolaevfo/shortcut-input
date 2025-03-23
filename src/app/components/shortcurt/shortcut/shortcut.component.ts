@@ -1,19 +1,28 @@
-import { Component, DestroyRef, ElementRef, HostListener, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { BehaviorSubject, distinctUntilChanged, filter, fromEvent, map, merge, Subject, Subscription, tap } from 'rxjs';
 
 @Component({
-  selector: 'app-shortcut',
-  templateUrl: './shortcut.component.html',
-  styleUrl: './shortcut.component.scss'
+    selector: 'app-shortcut',
+    templateUrl: './shortcut.component.html',
+    styleUrl: './shortcut.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            multi: true,
+            useExisting: ShortcutComponent,
+        },
+    ],
 })
-export class ShortcutComponent implements OnInit, OnDestroy {
+export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccessor {
     @Input({ required: true }) modifiers!: string[];
 
     @ViewChild('shortcutInput', { static: true }) private shortcutInput!: ElementRef;
 
     // if the shortcut matches to the system ones (for example, Alt + Tab),
     // clear the state when switching the window
-    @HostListener('window:blur') onWindowBlur () {
+    @HostListener('window:blur') onWindowBlur() {
         if (
             this.countOfModifiersPressedKeys === 0 &&
             this.countOfNotModifiersPressedKeys === 0
@@ -32,12 +41,24 @@ export class ShortcutComponent implements OnInit, OnDestroy {
 
     protected clearKeydownDistinctUntilChanged$ = new Subject<void>();
 
-    protected showedKeys$ = new BehaviorSubject<string[]>([]);
     protected inProgress = false;
     protected isValid = false;
     protected currentValidStateExist = false;
+    protected showedKeys$ = new BehaviorSubject<string[]>([]);
+    private set showedValue (newKeysArray: string[]) {
+        this.showedKeys$.next(newKeysArray);
 
-    ngOnInit (): void {
+        if (this.isValid) {
+            const newValueString = newKeysArray.join('+');
+            this.onChange(newValueString);
+        }
+    }
+
+    constructor (
+        private readonly changeDetectorRef: ChangeDetectorRef,
+    ) {}
+
+    ngOnInit(): void {
         const keydown$ = fromEvent<KeyboardEvent>(this.shortcutInput.nativeElement, 'keydown');
         const keyup$ = fromEvent<KeyboardEvent>(this.shortcutInput.nativeElement, 'keyup');
 
@@ -62,6 +83,7 @@ export class ShortcutComponent implements OnInit, OnDestroy {
             )
             .subscribe((key) => {
                 this.onKeyDownHandler(key);
+                this.changeDetectorRef.markForCheck();
             })
         )
 
@@ -78,22 +100,52 @@ export class ShortcutComponent implements OnInit, OnDestroy {
                     this.updateCurrentKeysCountsKeyup(key);
                     this.currentPressedKeys.splice(keyIndex, 1);
 
-                    if(this.currentPressedKeys.length === 0) {
+                    if (this.currentPressedKeys.length === 0) {
                         this.inProgress = false;
                     }
                 })
             )
             .subscribe((key: string) => {
                 this.onKeyUpHandler(key);
+                this.changeDetectorRef.markForCheck();
             })
         )
     }
 
+    // ControlValueAccessor
     ngOnDestroy(): void {
         this.subscription.unsubscribe();
     }
 
-    private clearState () {
+    writeValue(newShortcut: string) {
+        if (!newShortcut) {
+            return;
+        }
+
+        console.log('writeValue', newShortcut);
+        const newKeysArray = newShortcut.split('+');
+        this.currentValidStateExist = true;
+        this.showedValue = newKeysArray;
+        this.changeDetectorRef.markForCheck();
+    }
+
+    onChange: (newShortcut: string) => void = () => {
+        console.error('ShortcutComponent not connected');
+    }
+
+    registerOnChange(fn: (newShortcut: string) => void) {
+        this.onChange = fn;
+    }
+
+    onTouched: () => void = () => {
+        console.error('ShortcutComponent not connected');
+    }
+
+    registerOnTouched(fn: () => void) {
+        this.onTouched = fn;
+    }
+
+    private clearState() {
         this.countOfModifiersPressedKeys = 0;
         this.countOfNotModifiersPressedKeys = 0;
         this.currentPressedKeys = [];
@@ -101,18 +153,18 @@ export class ShortcutComponent implements OnInit, OnDestroy {
         this.clearKeydownDistinctUntilChanged$.next();
 
         if (!this.currentValidStateExist) {
-            this.showedKeys$.next([])
+            this.showedValue = [];
         }
     }
 
-    private onKeyDownHandler (key: string) {
+    private onKeyDownHandler(key: string) {
         // if the component has a valid state before
         if (this.currentValidStateExist) {
             // render the old valid state until we get a new valid state
             if (this.inputValidity) {
                 this.isValid = true;
 
-                this.showedKeys$.next([...this.currentPressedKeys]);
+                this.showedValue = [...this.currentPressedKeys];
             } else {
                 this.isValid = false;
             }
@@ -122,29 +174,29 @@ export class ShortcutComponent implements OnInit, OnDestroy {
 
         // If the component doesn't have a valid state before,
         // render the pressed key inside the shortcut-input
-        this.showedKeys$.next([...this.currentPressedKeys]);
+        this.showedValue = [...this.currentPressedKeys];
 
         // update currentValidState if valid
         if (this.inputValidity) {
             this.currentValidStateExist = true;
             this.isValid = true;
 
-            this.showedKeys$.next([...this.currentPressedKeys]);
+            this.showedValue = [...this.currentPressedKeys];
         } else {
             this.isValid = false;
         }
     }
 
-    private onKeyUpHandler (key: string) {
+    private onKeyUpHandler(key: string) {
         // if the component doesn't have a valid state before and the current value is invalid
         if (!this.currentValidStateExist && !this.inputValidity) {
             // remove it from the render
-            this.showedKeys$.next([]);
+            this.showedValue = [];
             return;
         }
     }
 
-    private updateCurrentKeysCountsKeydown (key: string) {
+    private updateCurrentKeysCountsKeydown(key: string) {
         if (this.modifiers.includes(key)) {
             this.countOfModifiersPressedKeys++;
         } else {
@@ -152,7 +204,7 @@ export class ShortcutComponent implements OnInit, OnDestroy {
         }
     }
 
-    private updateCurrentKeysCountsKeyup (key: string) {
+    private updateCurrentKeysCountsKeyup(key: string) {
         if (this.modifiers.includes(key)) {
             this.countOfModifiersPressedKeys--;
         } else {
@@ -160,7 +212,7 @@ export class ShortcutComponent implements OnInit, OnDestroy {
         }
     }
 
-    private get inputValidity (): boolean {
+    private get inputValidity(): boolean {
         return this.countOfModifiersPressedKeys > 0 &&
             this.countOfNotModifiersPressedKeys === 1;
     }

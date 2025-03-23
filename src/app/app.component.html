@@ -1,5 +1,9 @@
 <div class="app__shortcut-wrapper">
     <app-shortcut
+        [(ngModel)]="data"
         [modifiers]="modifiers"
     ></app-shortcut>
 </div>
+<br/>
+<p>Data from AppComponent</p>
+{{ data }}
