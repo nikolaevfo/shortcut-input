@@ -3,7 +3,7 @@
 ## Test work - a component that displays valid keyboard shortcuts
 
 #### Used in the process of work:
--HTML5, CSS3(Flexbox), TypeScript
+- HTML5, CSS3(Flexbox), TypeScript
 - Angular 17, RxJS
 
 ### Project functionality:
@@ -17,4 +17,4 @@
 https://github.com/nikolaevfo/shortcut-input.git
 ```
 - Install libraries with the npm install command
-- Launch the virtual server with the command
+- Launch the virtual server with the npm run start command
