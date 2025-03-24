@@ -22,7 +22,7 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
 
     // if the shortcut matches to the system ones (for example, Alt + Tab),
     // clear the state when switching the window
-    @HostListener('window:blur') onWindowBlur() {
+    @HostListener('window:blur') onWindowBlur () {
         if (
             this.countOfModifiersPressedKeys === 0 &&
             this.countOfNotModifiersPressedKeys === 0
@@ -82,7 +82,7 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
                 }),
             )
             .subscribe((key) => {
-                this.onKeyDownHandler(key);
+                this.onKeyDownHandler();
                 this.changeDetectorRef.markForCheck();
             })
         )
@@ -106,17 +106,17 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
                 })
             )
             .subscribe((key: string) => {
-                this.onKeyUpHandler(key);
+                this.onKeyUpHandler();
                 this.changeDetectorRef.markForCheck();
             })
         )
     }
 
-    // ControlValueAccessor
     ngOnDestroy(): void {
         this.subscription.unsubscribe();
     }
 
+    // ControlValueAccessor
     writeValue(newShortcut: string) {
         if (!newShortcut) {
             return;
@@ -144,7 +144,7 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
         this.onTouched = fn;
     }
 
-    private clearState() {
+    private clearState(): void {
         this.countOfModifiersPressedKeys = 0;
         this.countOfNotModifiersPressedKeys = 0;
         this.currentPressedKeys = [];
@@ -156,7 +156,7 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
         }
     }
 
-    private onKeyDownHandler(key: string) {
+    private onKeyDownHandler(): void {
         // if the component has a valid state before
         if (this.currentValidStateExist) {
             // render the old valid state until we get a new valid state
@@ -186,7 +186,7 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
         }
     }
 
-    private onKeyUpHandler(key: string) {
+    private onKeyUpHandler(): void {
         // if the component doesn't have a valid state before and the current value is invalid
         if (!this.currentValidStateExist && !this.inputValidity) {
             // remove it from the render
@@ -195,7 +195,7 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
         }
     }
 
-    private updateCurrentKeysCountsKeydown(key: string) {
+    private updateCurrentKeysCountsKeydown(key: string): void {
         if (this.modifiers.includes(key)) {
             this.countOfModifiersPressedKeys++;
         } else {
@@ -203,7 +203,7 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
         }
     }
 
-    private updateCurrentKeysCountsKeyup(key: string) {
+    private updateCurrentKeysCountsKeyup(key: string): void {
         if (this.modifiers.includes(key)) {
             this.countOfModifiersPressedKeys--;
         } else {
