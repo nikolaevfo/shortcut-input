@@ -122,7 +122,6 @@ export class ShortcutComponent implements OnInit, OnDestroy, ControlValueAccesso
             return;
         }
 
-        console.log('writeValue', newShortcut);
         const newKeysArray = newShortcut.split('+');
         this.currentValidStateExist = true;
         this.showedValue = newKeysArray;
